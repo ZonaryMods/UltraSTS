@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.2] - 2026-09-13
+
+### Fixed
+
+- **Thread-Safety in Pokemon Sales**: Fixed concurrency issue where selling Pokémon from party or PC could run asynchronously instead of safely on the main server thread.
+- **Concurrent Session Selection**: Improved thread-safe Pokémon selection during STS menus and multi-selection.
 ## [1.6.1] - 2026-09-11
 
 ### Changed
@@ -116,4 +122,5 @@
 ### Changed
 
 - Users can now **disable the STS available notification individually**.
+
 

@@ -2,6 +2,7 @@ package com.kingpixel.ultrasts.models;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.api.EconomyApi;
 import com.kingpixel.cobbleutils.api.PermissionApi;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
@@ -70,56 +71,79 @@ public class User {
   }
 
   public CompletableFuture<Boolean> sellPokemon(STS sts, Pokemon pokemon, ServerPlayerEntity player) {
-    return UltraSTS.getAsyncContext().supply(() -> {
+    CompletableFuture<Boolean> future = new CompletableFuture<>();
+    CobbleUtils.server.execute(() -> {
       synchronized (this) {
-        if (hasCooldown(sts)) return false;
-        BigDecimal price = BigDecimal.valueOf(sts.getFormula().getPokemonValue(pokemon));
-        if (price.compareTo(BigDecimal.ZERO) <= 0) return false;
+        try {
+          if (hasCooldown(sts)) {
+            future.complete(false);
+            return;
+          }
+          BigDecimal price = BigDecimal.valueOf(sts.getFormula().getPokemonValue(pokemon));
+          if (price.compareTo(BigDecimal.ZERO) <= 0) {
+            future.complete(false);
+            return;
+          }
 
-        var party = Cobblemon.INSTANCE.getStorage().getParty(player);
-        var pc = Cobblemon.INSTANCE.getStorage().getPC(player);
+          var party = Cobblemon.INSTANCE.getStorage().getParty(player);
+          var pc = Cobblemon.INSTANCE.getStorage().getPC(player);
 
-        if (party.remove(pokemon) || pc.remove(pokemon)) {
-          addCooldown(sts, player);
-          moneyGained.merge(sts.getId(), price, BigDecimal::add);
-          EconomyApi.addMoney(player.getUuid(), price, sts.getEconomy());
-          markDirty();
-          return true;
+          if (party.remove(pokemon) || pc.remove(pokemon)) {
+            addCooldown(sts, player);
+            moneyGained.merge(sts.getId(), price, BigDecimal::add);
+            EconomyApi.addMoney(player.getUuid(), price, sts.getEconomy());
+            markDirty();
+            future.complete(true);
+          } else {
+            future.complete(false);
+          }
+        } catch (Exception e) {
+          future.completeExceptionally(e);
         }
-        return false;
       }
     });
+    return future;
   }
 
   public CompletableFuture<BigDecimal> sellPokemons(STS sts, List<Pokemon> pokemons, ServerPlayerEntity player) {
-    return UltraSTS.getAsyncContext().supply(() -> {
+    CompletableFuture<BigDecimal> future = new CompletableFuture<>();
+    CobbleUtils.server.execute(() -> {
       synchronized (this) {
-        if (hasCooldown(sts)) return BigDecimal.ZERO;
-
-        var party = Cobblemon.INSTANCE.getStorage().getParty(player);
-        var pc = Cobblemon.INSTANCE.getStorage().getPC(player);
-
-        BigDecimal totalPool = BigDecimal.ZERO;
-        int actuallyRemovedCount = 0;
-
-        for (Pokemon pokemon : pokemons) {
-          BigDecimal price = BigDecimal.valueOf(sts.getFormula().getPokemonValue(pokemon));
-          if (price.compareTo(BigDecimal.ZERO) > 0 && (party.remove(pokemon) || pc.remove(pokemon))) {
-            totalPool = totalPool.add(price);
-            actuallyRemovedCount++;
+        try {
+          if (hasCooldown(sts)) {
+            future.complete(BigDecimal.ZERO);
+            return;
           }
-        }
 
-        if (actuallyRemovedCount > 0) {
-          addCooldown(sts, player, actuallyRemovedCount);
-          moneyGained.merge(sts.getId(), totalPool, BigDecimal::add);
-          EconomyApi.addMoney(player.getUuid(), totalPool, sts.getEconomy());
-          markDirty();
-          return totalPool;
+          var party = Cobblemon.INSTANCE.getStorage().getParty(player);
+          var pc = Cobblemon.INSTANCE.getStorage().getPC(player);
+
+          BigDecimal totalPool = BigDecimal.ZERO;
+          int actuallyRemovedCount = 0;
+
+          for (Pokemon pokemon : pokemons) {
+            BigDecimal price = BigDecimal.valueOf(sts.getFormula().getPokemonValue(pokemon));
+            if (price.compareTo(BigDecimal.ZERO) > 0 && (party.remove(pokemon) || pc.remove(pokemon))) {
+              totalPool = totalPool.add(price);
+              actuallyRemovedCount++;
+            }
+          }
+
+          if (actuallyRemovedCount > 0) {
+            addCooldown(sts, player, actuallyRemovedCount);
+            moneyGained.merge(sts.getId(), totalPool, BigDecimal::add);
+            EconomyApi.addMoney(player.getUuid(), totalPool, sts.getEconomy());
+            markDirty();
+            future.complete(totalPool);
+          } else {
+            future.complete(BigDecimal.ZERO);
+          }
+        } catch (Exception e) {
+          future.completeExceptionally(e);
         }
-        return BigDecimal.ZERO;
       }
     });
+    return future;
   }
 
   public boolean hasCooldown(STS sts) {
