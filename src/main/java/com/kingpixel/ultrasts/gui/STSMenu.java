@@ -74,7 +74,7 @@ public class STSMenu {
       selectSTS.getBlackList(),
       UltraSTS.lang.getPokemonLore(),
       (pokemon, lore) -> {
-
+        if (lore == null) return;
         EconomyUse economyUse = selectSTS.getEconomy();
 
         String price = EconomyApi.formatMoney(

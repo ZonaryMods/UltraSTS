@@ -17,7 +17,7 @@ public class Lang {
   private String selected = "&7[&aSelected&7]";
   private String cooldownMessage = "%prefix% &cYou are on cooldown for %time%!";
   private String notificationSTSAvailable = "&aYou have some STS available!";
-  private String notificationSelling = "%prefix% &6You are sold %pokemon% STS for %price%!";
+  private String notificationSelling = "%prefix% &6You sold %pokemon% for %price%!";
   private String notificationSellingMulti = "%prefix% &6You sold %amount% Pokémon for %price%!";
   private String maxSelectedMessage = "%prefix% &cYou can only select up to %amount% Pokemon in this STS!";
   private String itemBannedMessage = "%prefix% &cOne or more selected Pokemon have a banned item!";
@@ -33,7 +33,7 @@ public class Lang {
   private String errorProcessingSale = "%prefix% &cError processing sale.";
   private String noValidPokemonSold = "%prefix% &cNo valid Pokemon were sold (perhaps they no longer exist?).";
   private String errorLoadingProfile = "&cAn error occurred while loading your profile. Please try again later.";
-  private String reloadSuccess = "UltraSTS reloaded successfully!";
+  private String reloadSuccess = "%prefix% &aUltraSTS reloaded successfully!";
   private String unknownUser = "Unknown";
   // GUI
   private Menu menu = new Menu();

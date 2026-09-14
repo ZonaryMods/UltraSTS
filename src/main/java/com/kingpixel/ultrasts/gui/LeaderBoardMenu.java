@@ -8,6 +8,7 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.Model.ItemModel;
 import com.kingpixel.cobbleutils.Model.PanelsConfig;
 import com.kingpixel.cobbleutils.Model.Rectangle;
+import com.kingpixel.cobbleutils.api.EconomyApi;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.ultrasts.UltraSTS;
@@ -117,17 +118,19 @@ public class LeaderBoardMenu {
     BigDecimal moneyEarned = user.getMoneyGained() != null && user.getMoneyGained().containsKey(value.getId())
       ? user.getMoneyGained().get(value.getId())
       : BigDecimal.ZERO;
+    String formattedMoney = EconomyApi.formatMoney(moneyEarned, value.getEconomy());
 
-    String displayName = username
+    String rawDisplayName = this.user.getDisplayname() != null ? this.user.getDisplayname() : "&6%username%";
+    String displayName = rawDisplayName
       .replace("%rank%", String.valueOf(index))
       .replace("%username%", username)
-      .replace("%money_earned%", moneyEarned.toPlainString());
+      .replace("%money_earned%", formattedMoney);
 
-    List<String> lore = new ArrayList<>(getUser().getLore());
+    List<String> lore = this.user.getLore() != null ? new ArrayList<>(this.user.getLore()) : new ArrayList<>();
     lore.replaceAll(s -> s
       .replace("%rank%", String.valueOf(index))
       .replace("%username%", username)
-      .replace("%money_earned%", moneyEarned.toPlainString()));
+      .replace("%money_earned%", formattedMoney));
 
     return GooeyButton.builder()
       .display(PlayerUtils.getHeadItem(user.getUuid()))

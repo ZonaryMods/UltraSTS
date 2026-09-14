@@ -20,12 +20,12 @@ import java.util.concurrent.TimeUnit;
 @Data
 public class SelectLeaderBoardMenu {
   private int rows = 3;
-  private String title = "Select Leaderboard";
+  private String title = "&6Select Leaderboard";
   private ItemModel close = ItemModel.builder()
     .slot(22)
     .item("minecraft:barrier")
     .displayname("&6Close")
-    .lore(List.of("&7Close the profile menu"))
+    .lore(List.of("&7Close the leaderboard menu"))
     .build();
   private List<PanelsConfig> panels = List.of(new PanelsConfig());
 
@@ -38,9 +38,11 @@ public class SelectLeaderBoardMenu {
 
       for (STS value : STSConf.STS_MAP.values()) {
         ItemModel stsDisplay = value.getDisplay();
+        if (stsDisplay == null) continue;
         ItemModel display = ItemModel.builder()
           .item(stsDisplay.getItem())
           .displayname(stsDisplay.getDisplayname())
+          .lore(stsDisplay.getLore() != null ? new java.util.ArrayList<>(stsDisplay.getLore()) : new java.util.ArrayList<>())
           .slot(stsDisplay.getSlot())
           .build();
         display.applyTemplate(template, display.getButton(action -> UltraSTS.lang.getLeaderBoardMenu().open(player, value, 0), 1, TimeUnit.SECONDS, 1));

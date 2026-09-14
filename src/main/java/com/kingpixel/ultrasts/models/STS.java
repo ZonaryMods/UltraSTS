@@ -35,7 +35,7 @@ public class STS {
     .item("minecraft:diamond_sword")
     .displayname("&bSTS")
     .lore(List.of(
-      "&7Click to entrer the category STS",
+      "&7Click to enter the category STS",
       "&7Cooldown: %cooldown%",
       "&7Can Join: %canjoin%"
     ))
@@ -60,7 +60,7 @@ public class STS {
   public RateLimitedButton getButton(ServerPlayerEntity player) {
     User user = UltraSTS.database.getUser(player.getUuid());
     if (user == null) return null;
-    List<String> lore = new ArrayList<>(display.getLore());
+    List<String> lore = display != null && display.getLore() != null ? new ArrayList<>(display.getLore()) : new ArrayList<>();
     lore.replaceAll(s -> s
       .replace("%cooldown%", PlayerUtils.getCooldown(user.getCooldown(this)))
       .replace("%canjoin%", user.hasPermission(player, this) ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo())

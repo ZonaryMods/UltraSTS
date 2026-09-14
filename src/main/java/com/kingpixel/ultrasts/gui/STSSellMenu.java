@@ -41,6 +41,8 @@ public class STSSellMenu {
   private int rowsPC = 6;
   private int rowsParty = 4;
   private String title = "&6STS Sell Menu";
+  private String titlePC = "&6STS Sell Menu (Box %box%)";
+  private String titleParty = "&6STS Sell Menu (Party)";
   private List<Integer> partySlots = List.of(10, 11, 12, 13, 14, 15);
 
   private ItemModel clearButtonPC = ItemModel.builder()
@@ -209,10 +211,12 @@ public class STSSellMenu {
     BigDecimal finalTotalPrice = totalPrice;
     ItemModel confirmModel = isPC ? confirmButtonPC : confirmButtonParty;
 
-    List<String> lore = confirmModel.getLore().stream()
-      .map(s -> s.replace("%amount%", String.valueOf(selected.size()))
-        .replace("%price%", EconomyApi.formatMoney(finalTotalPrice, sts.getEconomy())))
-      .collect(Collectors.toList());
+    List<String> lore = confirmModel.getLore() != null
+      ? confirmModel.getLore().stream()
+          .map(s -> s.replace("%amount%", String.valueOf(selected.size()))
+            .replace("%price%", EconomyApi.formatMoney(finalTotalPrice, sts.getEconomy())))
+          .collect(Collectors.toList())
+      : new ArrayList<>();
 
     confirmModel.applyTemplate(template, confirmModel.getButton(1, null, lore, action -> {
       if (selected.isEmpty()) return;
@@ -227,9 +231,13 @@ public class STSSellMenu {
       handleSale(player, sts, selected);
     }, 1, TimeUnit.SECONDS, 1));
 
+    String pageTitle = isPC
+      ? titlePC.replace("%box%", String.valueOf(boxIdx + 1))
+      : titleParty;
+
     GooeyPage page = GooeyPage.builder()
       .template(template)
-      .title(AdventureTranslator.toNative(title + (isPC ? " (Box " + (boxIdx + 1) + ")" : " (Party)")))
+      .title(AdventureTranslator.toNative(pageTitle))
       .build();
 
     CobbleUtils.server.execute(() -> UIManager.openUIForcefully(player, page));
@@ -287,9 +295,13 @@ public class STSSellMenu {
 
     if (isSelected) itemStack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
 
-    List<String> lore = new ArrayList<>(UltraSTS.lang.getPokemonLore());
+    List<String> lore = UltraSTS.lang.getPokemonLore() != null
+      ? new ArrayList<>(UltraSTS.lang.getPokemonLore())
+      : new ArrayList<>();
     EconomyUse economyUse = sts.getEconomy();
-    if (isSelected) lore.addFirst(UltraSTS.lang.getSelected());
+    if (isSelected && UltraSTS.lang.getSelected() != null) {
+      lore.addFirst(UltraSTS.lang.getSelected());
+    }
     String price = EconomyApi.formatMoney(BigDecimal.valueOf(sts.getFormula().getPokemonValue(pokemon)), economyUse);
     lore.replaceAll(s -> PokemonUtils.replace(
       s.replace("%price%", price),

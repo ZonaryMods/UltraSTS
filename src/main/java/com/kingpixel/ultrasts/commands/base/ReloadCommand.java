@@ -1,11 +1,11 @@
 package com.kingpixel.ultrasts.commands.base;
 
 import com.kingpixel.cobbleutils.api.PermissionApi;
+import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.ultrasts.UltraSTS;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 
 public class ReloadCommand {
 
@@ -17,7 +17,7 @@ public class ReloadCommand {
           .executes(context -> {
             UltraSTS.reload();
             context.getSource().sendMessage(
-              Text.literal(
+              AdventureTranslator.toNative(
                 UltraSTS.lang.getReloadSuccess()
               )
             );

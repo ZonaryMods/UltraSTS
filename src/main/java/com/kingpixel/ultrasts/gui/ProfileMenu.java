@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 @Data
 public class ProfileMenu {
   private int rows = 3;
-  private String title = "Profile Menu";
+  private String title = "&6Profile Menu";
   private ItemModel notifications = ItemModel.builder()
     .slot(13)
     .item("minecraft:bell")
@@ -48,7 +48,9 @@ public class ProfileMenu {
       PanelsConfig.applyConfig(template, panels);
 
 
-      List<String> loreNotifications = new ArrayList<>(notifications.getLore());
+      List<String> loreNotifications = notifications != null && notifications.getLore() != null
+        ? new ArrayList<>(notifications.getLore())
+        : new ArrayList<>();
       loreNotifications.replaceAll(s -> s.replace("%status%", user.getOptions().isNotificationsEnabled() ? CobbleUtils.language.getYes() : CobbleUtils.language.getNo()));
       notifications.applyTemplate(template, notifications.getButton(1, null, loreNotifications, action -> {
         user.getOptions().setNotificationsEnabled(!user.getOptions().isNotificationsEnabled());

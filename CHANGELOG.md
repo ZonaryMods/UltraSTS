@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.3] - 2026-09-14
+
+### Fixed
+
+- **Menu Descriptions & Lore**: Fixed an issue where category descriptions and lores were missing in the leaderboard selection menu.
+- **Leaderboard Display**: Player ranking and money earned in the leaderboard are now formatted properly with the category's currency.
+- **Language & Translations**: Replaced remaining hardcoded menu titles and fixed text formatting across menus to ensure full translation support.
+- **Menu Stability**: Added safety checks to prevent crashes when opening menus with incomplete or custom configuration files.
+
 ## [1.6.2] - 2026-09-13
 
 ### Fixed

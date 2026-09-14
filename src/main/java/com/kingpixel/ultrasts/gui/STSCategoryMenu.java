@@ -47,7 +47,9 @@ public class STSCategoryMenu {
       var categories = STSConf.STS_MAP.values();
       for (STS category : categories) {
         RateLimitedButton button = category.getButton(player);
-        category.getDisplay().applyTemplate(template, button);
+        if (button != null && category.getDisplay() != null) {
+          category.getDisplay().applyTemplate(template, button);
+        }
       }
 
       close.applyTemplate(template, close.getButton(action -> UltraSTS.lang.getMenu().open(player), 1, TimeUnit.SECONDS, 1));
