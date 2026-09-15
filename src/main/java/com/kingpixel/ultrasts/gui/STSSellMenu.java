@@ -34,10 +34,12 @@ import org.joml.Vector4f;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Data
 public class STSSellMenu {
+  private static final Pattern NEWLINE_PATTERN = Pattern.compile("\\r?\\n|\\\\n");
   private int rowsPC = 6;
   private int rowsParty = 4;
   private String title = "&6STS Sell Menu";
@@ -213,9 +215,9 @@ public class STSSellMenu {
 
     List<String> lore = confirmModel.getLore() != null
       ? confirmModel.getLore().stream()
-          .map(s -> s.replace("%amount%", String.valueOf(selected.size()))
-            .replace("%price%", EconomyApi.formatMoney(finalTotalPrice, sts.getEconomy())))
-          .collect(Collectors.toList())
+      .map(s -> s.replace("%amount%", String.valueOf(selected.size()))
+        .replace("%price%", EconomyApi.formatMoney(finalTotalPrice, sts.getEconomy())))
+      .collect(Collectors.toList())
       : new ArrayList<>();
 
     confirmModel.applyTemplate(template, confirmModel.getButton(1, null, lore, action -> {
@@ -289,25 +291,17 @@ public class STSSellMenu {
 
   private GooeyButton createPokemonButton(ServerPlayerEntity player, STS sts, Pokemon pokemon, Set<Pokemon> selected) {
     boolean isSelected = selected.contains(pokemon);
-    ItemStack itemStack = isSelected
-      ? PokemonItem.from(pokemon, 1, new Vector4f(1f, 1f, 1f, 1.0f))
-      : PokemonItem.from(pokemon, 1, new Vector4f(0.5f, 0.5f, 0.5f, 0.5f));
+    ItemStack itemStack = PokemonItem.from(
+      pokemon,
+      1,
+      isSelected
+        ? new Vector4f(1f, 1f, 1f, 1.0f)
+        : new Vector4f(0.5f, 0.5f, 0.5f, 0.5f)
+    );
 
     if (isSelected) itemStack.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
 
-    List<String> lore = UltraSTS.lang.getPokemonLore() != null
-      ? new ArrayList<>(UltraSTS.lang.getPokemonLore())
-      : new ArrayList<>();
-    EconomyUse economyUse = sts.getEconomy();
-    if (isSelected && UltraSTS.lang.getSelected() != null) {
-      lore.addFirst(UltraSTS.lang.getSelected());
-    }
-    String price = EconomyApi.formatMoney(BigDecimal.valueOf(sts.getFormula().getPokemonValue(pokemon)), economyUse);
-    lore.replaceAll(s -> PokemonUtils.replace(
-      s.replace("%price%", price),
-      pokemon
-    ));
-
+    List<String> lore = buildPokemonLore(sts, pokemon, isSelected);
     return GooeyButton.builder()
       .display(itemStack)
       .with(DataComponentTypes.CUSTOM_NAME, AdventureTranslator.toNative(PokemonUtils.replace(pokemon)))
@@ -336,6 +330,36 @@ public class STSSellMenu {
         render(player, sts);
       })
       .build();
+  }
+
+  public static List<String> buildPokemonLore(STS sts, Pokemon pokemon, boolean isSelected) {
+    List<String> rawLore = UltraSTS.lang.getPokemonLore() != null
+      ? new ArrayList<>(UltraSTS.lang.getPokemonLore())
+      : new ArrayList<>();
+    EconomyUse economyUse = sts.getEconomy();
+    if (isSelected && UltraSTS.lang.getSelected() != null) {
+      rawLore.addFirst(UltraSTS.lang.getSelected());
+    }
+    String price = EconomyApi.formatMoney(BigDecimal.valueOf(sts.getFormula().getPokemonValue(pokemon)), economyUse);
+
+    List<String> lore = new ArrayList<>();
+    for (String line : rawLore) {
+      if (line == null) continue;
+      String processed = line.replace("%price%", price);
+      if (processed.contains("%lorepokemon%")) {
+        List<String> pokeLore = PokemonUtils.replaceLore(pokemon);
+        if (pokeLore != null && !pokeLore.isEmpty()) {
+          for (String pLine : pokeLore) {
+            if (pLine == null) continue;
+            Collections.addAll(lore, NEWLINE_PATTERN.split(pLine));
+          }
+        }
+      } else {
+        String replaced = PokemonUtils.replace(processed, pokemon);
+        Collections.addAll(lore, NEWLINE_PATTERN.split(replaced));
+      }
+    }
+    return lore;
   }
 
   private void handleSale(ServerPlayerEntity player, STS sts, Set<Pokemon> selected) {

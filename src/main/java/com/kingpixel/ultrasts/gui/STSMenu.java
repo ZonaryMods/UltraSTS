@@ -15,6 +15,7 @@ import lombok.Data;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Data
@@ -75,17 +76,9 @@ public class STSMenu {
       UltraSTS.lang.getPokemonLore(),
       (pokemon, lore) -> {
         if (lore == null) return;
-        EconomyUse economyUse = selectSTS.getEconomy();
-
-        String price = EconomyApi.formatMoney(
-          BigDecimal.valueOf(selectSTS.getFormula().getPokemonValue(pokemon)),
-          economyUse
-        );
-
-        lore.replaceAll(s -> PokemonUtils.replace(
-          s.replace("%price%", price),
-          pokemon
-        ));
+        List<String> formattedLore = STSSellMenu.buildPokemonLore(selectSTS, pokemon, false);
+        lore.clear();
+        lore.addAll(formattedLore);
       },
       UltraSTS.lang.getConfirmMenu()
     )).exceptionally(e -> {
