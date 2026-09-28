@@ -17,6 +17,7 @@ import com.kingpixel.ultrasts.models.User;
 import lombok.Data;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.math.BigDecimal;
@@ -65,7 +66,7 @@ public class LeaderBoardMenu {
         UltraSTS.LOGGER.error("Failed to load leaderboard for STS: {}", value.getId(), e);
         return null;
       })
-      .thenCompose((users) -> {
+      .thenCompose(users -> {
         try {
           ChestTemplate template = ChestTemplate.builder(rows)
             .build();
@@ -77,14 +78,14 @@ public class LeaderBoardMenu {
             users = new ArrayList<>();
           } else {
             users = users.stream()
-              .filter(user -> user != null && user.getMoneyGained() != null)
+              .filter(u -> u != null && u.getMoneyGained() != null)
               .toList();
           }
 
           int index = numPage * rectangle.getTotalSlots() + 1;
           List<GooeyButton> buttons = new ArrayList<>();
-          for (User user : users) {
-            buttons.add(getButton(user, index, value));
+          for (User rankedUser : users) {
+            buttons.add(getButton(rankedUser, index, value));
             index++;
           }
           rectangle.apply(template, buttons);
@@ -132,8 +133,15 @@ public class LeaderBoardMenu {
       .replace("%username%", username)
       .replace("%money_earned%", formattedMoney));
 
+    ItemStack displayItem;
+    if (this.user.getItem() != null && this.user.getItem().contains("player_head")) {
+      displayItem = PlayerUtils.getHeadItem(user.getUuid());
+    } else {
+      displayItem = this.user.getItemStack();
+    }
+
     return GooeyButton.builder()
-      .display(PlayerUtils.getHeadItem(user.getUuid()))
+      .display(displayItem)
       .with(DataComponentTypes.CUSTOM_NAME, AdventureTranslator.toNative(displayName))
       .with(DataComponentTypes.LORE, new LoreComponent(
         AdventureTranslator.toNativeL(

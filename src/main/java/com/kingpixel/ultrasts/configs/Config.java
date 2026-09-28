@@ -9,6 +9,8 @@ import com.kingpixel.ultrasts.UltraSTS;
 import lombok.Data;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -21,8 +23,7 @@ public class Config {
   private String lang = "en_us";
   private List<String> commands = List.of(UltraSTS.MOD_ID, "sts");
   private Set<String> blockHeldItems = Set.of(
-    "minecraft:diamond",
-    "*"
+    "minecraft:diamond"
   );
   private DataBaseConfig database = DataBaseConfig.builder()
     .database(UltraSTS.MOD_ID)
@@ -39,20 +40,24 @@ public class Config {
       UltraSTS.config = config;
       UtilsFile.writeAsync(file, config);
     } catch (IOException e) {
-      e.printStackTrace();
+      UltraSTS.LOGGER.error("Failed to load or save config.json", e);
     }
   }
 
   private void fix() {
-
+    if (commands == null) commands = List.of(UltraSTS.MOD_ID, "sts");
+    if (blockHeldItems == null) blockHeldItems = Set.of("minecraft:diamond");
+    if (notificationCooldown == null) notificationCooldown = DurationValue.parse("15m");
   }
 
   public boolean isItemBanned(Pokemon pokemon) {
     ItemStack itemStack = pokemon.heldItemNoCopy$common();
     if (itemStack.isEmpty()) return false;
     Item item = itemStack.getItem();
-    String itemId = item.toString();
-    return blockHeldItems.contains("*") || blockHeldItems.contains(itemId);
+    Identifier id = Registries.ITEM.getId(item);
+    String fullId = id.toString();
+    String path = id.getPath();
+    return blockHeldItems.contains("*") || blockHeldItems.contains(fullId) || blockHeldItems.contains(path);
   }
 
 }

@@ -80,9 +80,11 @@ public class Menu {
 
   private RateLimitedButton getProfileButton(ServerPlayerEntity player) {
     RateLimitedButton profileButton = profile.getButton(action -> UltraSTS.lang.getProfileMenu().open(player), 1, TimeUnit.SECONDS, 1);
-    ItemStack headItem = PlayerUtils.getHeadItem(player);
-    headItem.applyComponentsFrom(profileButton.getDisplay().getComponents());
-    profileButton.setDisplay(headItem);
+    if (profile.getItem() != null && profile.getItem().contains("player_head")) {
+      ItemStack headItem = PlayerUtils.getHeadItem(player);
+      headItem.applyComponentsFrom(profileButton.getDisplay().getComponents());
+      profileButton.setDisplay(headItem);
+    }
     return profileButton;
   }
 }

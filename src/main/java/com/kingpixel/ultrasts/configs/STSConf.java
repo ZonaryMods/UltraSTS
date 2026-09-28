@@ -9,8 +9,9 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Data
 public class STSConf {
+  private STSConf() {}
+
   public static final Map<String, STS> STS_MAP = new ConcurrentHashMap<>();
 
   public static void init() {
@@ -29,7 +30,7 @@ public class STSConf {
           }
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        UltraSTS.LOGGER.error("Failed to load STS configurations", e);
       }
     } else {
       path.toFile().mkdirs();
@@ -42,7 +43,11 @@ public class STSConf {
   }
 
   public static STS getSTS(String id) {
-    return STS_MAP.getOrDefault(id, STS_MAP.values().stream().toList().getFirst());
+    if (id != null && !id.isEmpty()) {
+      STS sts = STS_MAP.get(id);
+      if (sts != null) return sts;
+    }
+    return STS_MAP.values().stream().findFirst().orElse(null);
   }
 
   public static int getSize() {

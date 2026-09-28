@@ -35,6 +35,9 @@ public class Lang {
   private String noValidPokemonSold = "%prefix% &cNo valid Pokemon were sold (perhaps they no longer exist?).";
   private String errorLoadingProfile = "&cAn error occurred while loading your profile. Please try again later.";
   private String reloadSuccess = "%prefix% &aUltraSTS reloaded successfully!";
+  private String resetSuccess = "%prefix% &aCooldowns have been reset successfully!";
+  private String resetSuccessOther = "%prefix% &aCooldowns for %player% have been reset successfully!";
+  private String playerNotFound = "%prefix% &cPlayer %player% not found!";
   private String unknownUser = "Unknown";
   // GUI
   private Menu menu = new Menu();
@@ -57,11 +60,13 @@ public class Lang {
       UltraSTS.lang = lang;
       UtilsFile.writeAsync(file, lang);
     } catch (IOException e) {
-      e.printStackTrace();
+      UltraSTS.LOGGER.error("Failed to load or save language file", e);
     }
   }
 
   private void fix() {
-
+    if (resetSuccess == null) resetSuccess = "%prefix% &aCooldowns have been reset successfully!";
+    if (resetSuccessOther == null) resetSuccessOther = "%prefix% &aCooldowns for %player% have been reset successfully!";
+    if (playerNotFound == null) playerNotFound = "%prefix% &cPlayer %player% not found!";
   }
 }

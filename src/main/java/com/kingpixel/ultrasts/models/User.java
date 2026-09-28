@@ -8,6 +8,7 @@ import com.kingpixel.cobbleutils.api.PermissionApi;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.UtilsFile;
 import com.kingpixel.ultrasts.UltraSTS;
+import com.kingpixel.ultrasts.configs.STSConf;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -67,7 +68,14 @@ public class User {
 
   public boolean hasSomeWithoutCooldown() {
     long now = System.currentTimeMillis();
-    return cooldowns.values().stream().anyMatch(expiresAt -> expiresAt <= now);
+    if (STSConf.STS_MAP.isEmpty()) return false;
+    for (STS sts : STSConf.STS_MAP.values()) {
+      long expiresAt = cooldowns.getOrDefault(sts.getId(), 0L);
+      if (expiresAt <= now) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public CompletableFuture<Boolean> sellPokemon(STS sts, Pokemon pokemon, ServerPlayerEntity player) {

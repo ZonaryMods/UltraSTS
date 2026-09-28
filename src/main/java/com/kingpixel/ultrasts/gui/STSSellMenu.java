@@ -137,6 +137,12 @@ public class STSSellMenu {
     return uuid.toString() + ":" + stsId;
   }
 
+  public void clearSession(UUID uuid) {
+    if (sessions != null && uuid != null) {
+      sessions.asMap().keySet().removeIf(key -> key.startsWith(uuid + ":"));
+    }
+  }
+
   public void open(ServerPlayerEntity player, STS sts, boolean clear) {
     String key = getSessionKey(player.getUuid(), sts.getId());
     if (sessions.getIfPresent(key) == null) {
@@ -222,12 +228,10 @@ public class STSSellMenu {
 
     confirmModel.applyTemplate(template, confirmModel.getButton(1, null, lore, action -> {
       if (selected.isEmpty()) return;
-      if (sts.isMultiSelect()) {
-        for (Pokemon p : selected) {
-          if (UltraSTS.config.isItemBanned(p)) {
-            PlayerUtils.sendMessage(player, UltraSTS.lang.getItemBannedMessage(), UltraSTS.lang.getPrefix(), TypeMessage.CHAT);
-            return;
-          }
+      for (Pokemon p : selected) {
+        if (UltraSTS.config.isItemBanned(p) || sts.isBlackListed(p)) {
+          PlayerUtils.sendMessage(player, UltraSTS.lang.getItemBannedMessage(), UltraSTS.lang.getPrefix(), TypeMessage.CHAT);
+          return;
         }
       }
       handleSale(player, sts, selected);

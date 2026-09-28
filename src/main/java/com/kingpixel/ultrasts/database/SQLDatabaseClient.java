@@ -21,6 +21,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -177,7 +178,7 @@ public class SQLDatabaseClient extends DatabaseClient {
       offset
     ).thenApply(users ->
       users.stream()
-        .filter(java.util.Objects::nonNull)
+        .filter(Objects::nonNull)
         .toList()
     );
   }

@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.6.4] - 2026-09-28
+
+### Fixed
+
+- **Custom Profile & Leaderboard Icons**: Fixed an issue where custom items assigned to the profile button in the main menu or player icons in the leaderboard were ignored and always displayed as player heads. Custom icons are now properly respected.
+- **Held Item Detection**: Fixed an issue where Pokémon holding allowed items could be blocked from sale because of the way items were identified. Also fixed the default configuration so it no longer accidentally blocks all held items out of the box.
+- **Menu Memory Cleanup**: Fixed a memory issue where Pokémon selections from open STS menus were kept in memory after a player disconnected. Sessions are now cleared immediately upon logout.
+- **Leaderboard Crash & Startup Safety**: Fixed a potential crash when querying STS categories if none were loaded or configured, making menu lookups safe against missing data.
+- **Reset Command Feedback & Console Support**: The `/sts reset` command can now be safely used from the server console (specifying a player name) and now sends clear confirmation messages when cooldowns are reset.
+- **Notification Reminders for New Players**: Fixed an issue where new players who hadn't made any sales yet never received reminders about available STS categories.
+
+### Changed
+
+- **Translations for Reset Command**: Added new translatable messages to `lang` for cooldown resets and player-not-found notices (`resetSuccess`, `resetSuccessOther`, `playerNotFound`).
+
 ## [1.6.3] - 2026-09-14
 
 ### Fixed

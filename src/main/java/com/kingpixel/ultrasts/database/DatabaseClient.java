@@ -2,6 +2,7 @@ package com.kingpixel.ultrasts.database;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.kingpixel.ultrasts.UltraSTS;
 import com.kingpixel.ultrasts.models.STS;
 import com.kingpixel.ultrasts.models.User;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -37,9 +38,7 @@ public abstract class DatabaseClient {
       // Block and ensure all "dirty" data is saved before the connection cuts
       saveAll().join();
     } catch (Exception e) {
-      // Replace with your mod's logger if available (e.g., UltraSTS.LOGGER)
-      System.err.println("Failed to save users during database disconnect: " + e.getMessage());
-      e.printStackTrace();
+      UltraSTS.LOGGER.error("Failed to save users during database disconnect", e);
     }
   }
 

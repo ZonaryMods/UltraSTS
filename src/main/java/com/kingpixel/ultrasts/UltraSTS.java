@@ -33,8 +33,10 @@ public class UltraSTS implements ModInitializer {
   public static Config config;
   public static Lang lang;
 
+  public static final AsyncContext ASYNC = UtilsAsync.createContext(MOD_ID, MOD_NAME, 1, 1);
+
   public static AsyncContext getAsyncContext() {
-    return UtilsAsync.createContext(MOD_ID, MOD_NAME, 1, 1);
+    return ASYNC;
   }
 
   @Override
@@ -83,6 +85,9 @@ public class UltraSTS implements ModInitializer {
 
     // CORRECCIÓN: Espera a que termine el guardado asíncrono ANTES de borrar la caché
     PlayerEvent.PLAYER_QUIT.register(player -> {
+      if (lang != null && lang.getStsSellMenu() != null) {
+        lang.getStsSellMenu().clearSession(player.getUuid());
+      }
       User user = database.getUser(player);
       if (user != null) {
         user.save().whenComplete((v, throwable) -> {
@@ -106,9 +111,7 @@ public class UltraSTS implements ModInitializer {
       }
     });
 
-    CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> {
-      Commands.register(dispatcher);
-    });
+    CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> Commands.register(dispatcher));
   }
 
   public static Path getPath() {

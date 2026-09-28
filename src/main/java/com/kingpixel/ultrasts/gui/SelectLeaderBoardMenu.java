@@ -13,6 +13,7 @@ import com.kingpixel.ultrasts.models.STS;
 import lombok.Data;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,7 @@ public class SelectLeaderBoardMenu {
         ItemModel display = ItemModel.builder()
           .item(stsDisplay.getItem())
           .displayname(stsDisplay.getDisplayname())
-          .lore(stsDisplay.getLore() != null ? new java.util.ArrayList<>(stsDisplay.getLore()) : new java.util.ArrayList<>())
+          .lore(stsDisplay.getLore() != null ? new ArrayList<>(stsDisplay.getLore()) : new ArrayList<>())
           .slot(stsDisplay.getSlot())
           .build();
         display.applyTemplate(template, display.getButton(action -> UltraSTS.lang.getLeaderBoardMenu().open(player, value, 0), 1, TimeUnit.SECONDS, 1));
