@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.7.0] - 2026-10-08
+
+### Added
+
+- **Sold Pokémon Recovery (Buyback System)**:
+  - Players can now recover Pokémon they previously sold in STS without losing any of their original attributes (moves, IVs, EVs, shininess, level, form, etc.).
+  - Added a dedicated, paginated GUI menu to browse and safely buy back sold Pokémon.
+  - Added a confirmation step before completing any buyback to prevent accidental purchases.
+  - Added quick access subcommands `/sts buyback` and `/sts recover`, as well as a direct button in the main STS menu.
+  - Added full translation support in `lang` for all recovery messages, buttons, and menu titles.
+
+- **Configurable Buyback Settings**:
+  - Server administrators can easily toggle the recovery feature on or off in `config.json`.
+  - **Price Adjustment**: Configure custom price markups (e.g. 20% extra) or keep the exact original sold price when buying back.
+  - **Expiration Timer**: Set how long sold Pokémon remain available for recovery (e.g. `30d` for 30 days) before they expire.
+  - **History Limit**: Configurable history capacity per player to keep server storage and memory lightweight and optimized.
+  - **Custom Permissions**: Added permission node (`permission: "ultrasts.buyback"` by default) to control access to `/sts buyback`, `/sts recover`, and the recovery menu button.
+- **Economy & Exploit Protection**:
+  - Built-in safeguards protect server economies against price fluctuations and configuration edits:
+    - The recovery cost will never be lower than the payout the player originally received upon selling, even if server prices or formulas were lowered afterward.
+    - If a Pokémon's market value increases after being sold, the recovery price dynamically adapts to prevent players from buying cheap and re-selling for a profit.
+    - Recovering a Pokémon automatically reconciles the player's total STS earnings, preventing leaderboard score manipulation through repeated sale and buyback loops.
+
 ## [1.6.4] - 2026-09-28
 
 ### Fixed

@@ -11,6 +11,7 @@ public class MariaDBQueries implements SQLQueries {
               options LONGTEXT NOT NULL,
               money_gained LONGTEXT NOT NULL,
               cooldowns LONGTEXT NOT NULL,
+              buyback LONGTEXT NOT NULL,
               INDEX idx_username (username)
           ) ENGINE=InnoDB
           DEFAULT CHARSET=utf8mb4
@@ -26,13 +27,14 @@ public class MariaDBQueries implements SQLQueries {
   @Override
   public String upsertUser() {
     return """
-          INSERT INTO users (uuid, username, options, money_gained, cooldowns)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT INTO users (uuid, username, options, money_gained, cooldowns, buyback)
+          VALUES (?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE
               username = VALUES(username),
               options = VALUES(options),
               money_gained = VALUES(money_gained),
-              cooldowns = VALUES(cooldowns)
+              cooldowns = VALUES(cooldowns),
+              buyback = VALUES(buyback)
       """;
   }
 

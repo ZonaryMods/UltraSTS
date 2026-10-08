@@ -42,6 +42,12 @@ public class Menu {
     .displayname("&6Profile")
     .lore(List.of("&7View your profile and stats!"))
     .build();
+  private ItemModel buyback = ItemModel.builder()
+    .slot(22)
+    .item("minecraft:recovery_compass")
+    .displayname("&6Recover Pokémon")
+    .lore(List.of("&7Recover your previously sold Pokémon!"))
+    .build();
   private List<PanelsConfig> panels = List.of(new PanelsConfig());
 
   public CompletableFuture<Void> open(ServerPlayerEntity player) {
@@ -69,6 +75,7 @@ public class Menu {
       }
 
       profile.applyTemplate(template, getProfileButton(player));
+      applyBuybackButton(template, player);
 
       GooeyPage page = GooeyPage.builder()
         .template(template)
@@ -86,5 +93,29 @@ public class Menu {
       profileButton.setDisplay(headItem);
     }
     return profileButton;
+  }
+
+  private void applyBuybackButton(ChestTemplate template, ServerPlayerEntity player) {
+    if (UltraSTS.config.getBuyback() == null || !UltraSTS.config.getBuyback().isEnabled()) {
+      return;
+    }
+    if (buyback == null) {
+      buyback = ItemModel.builder()
+        .slot(22)
+        .item("minecraft:recovery_compass")
+        .displayname("&6Recover Pokémon")
+        .lore(List.of("&7Recover your previously sold Pokémon!"))
+        .build();
+    }
+    buyback.applyTemplate(template, buyback.getButton(action -> {
+      if (!UltraSTS.config.getBuyback().hasPermission(player)) {
+        String perm = UltraSTS.config.getBuyback().getPermission();
+        PlayerUtils.sendMessage(player,
+          UltraSTS.lang.getNoPermissionBuyback().replace("%permission%", perm != null ? perm : ""),
+          UltraSTS.lang.getPrefix());
+        return;
+      }
+      UltraSTS.lang.getBuybackMenu().open(player, 0);
+    }, 1, TimeUnit.SECONDS, 1));
   }
 }

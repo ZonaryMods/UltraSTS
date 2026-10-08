@@ -39,6 +39,14 @@ public class Lang {
   private String resetSuccessOther = "%prefix% &aCooldowns for %player% have been reset successfully!";
   private String playerNotFound = "%prefix% &cPlayer %player% not found!";
   private String unknownUser = "Unknown";
+  private String buybackDisabled = "%prefix% &cPokemon recovery is currently disabled.";
+  private String buybackExpired = "%prefix% &cThis Pokemon has expired and can no longer be recovered.";
+  private String buybackSuccess = "%prefix% &aSuccessfully recovered %pokemon% for %price%!";
+  private String buybackNotEnoughMoney = "%prefix% &cYou do not have enough money to recover this Pokemon! (Required: %price%)";
+  private String buybackStorageFull = "%prefix% &cYour party and PC are full! Please make space before recovering.";
+  private String buybackNotFound = "%prefix% &cPokemon not found in recovery history.";
+  private String noPermissionBuyback = "%prefix% &cYou do not have permission to recover sold Pokemon! (Permission: %permission%)";
+  private String buybackPermanent = "Permanent";
   // GUI
   private Menu menu = new Menu();
   private STSCategoryMenu stsCategoryMenu = new STSCategoryMenu();
@@ -48,6 +56,7 @@ public class Lang {
   private SelectLeaderBoardMenu selectLeaderBoardMenu = new SelectLeaderBoardMenu();
   private LeaderBoardMenu leaderBoardMenu = new LeaderBoardMenu();
   private STSSellMenu stsSellMenu = new STSSellMenu();
+  private BuybackMenu buybackMenu = new BuybackMenu();
 
   public static void init() {
     String language = UltraSTS.config.getLang();
@@ -68,5 +77,14 @@ public class Lang {
     if (resetSuccess == null) resetSuccess = "%prefix% &aCooldowns have been reset successfully!";
     if (resetSuccessOther == null) resetSuccessOther = "%prefix% &aCooldowns for %player% have been reset successfully!";
     if (playerNotFound == null) playerNotFound = "%prefix% &cPlayer %player% not found!";
+    if (buybackMenu == null) buybackMenu = new BuybackMenu();
+    if (buybackDisabled == null) buybackDisabled = "%prefix% &cPokemon recovery is currently disabled.";
+    if (buybackExpired == null) buybackExpired = "%prefix% &cThis Pokemon has expired and can no longer be recovered.";
+    if (buybackSuccess == null) buybackSuccess = "%prefix% &aSuccessfully recovered %pokemon% for %price%!";
+    if (buybackNotEnoughMoney == null) buybackNotEnoughMoney = "%prefix% &cYou do not have enough money to recover this Pokemon! (Required: %price%)";
+    if (buybackStorageFull == null) buybackStorageFull = "%prefix% &cYour party and PC are full! Please make space before recovering.";
+    if (buybackNotFound == null) buybackNotFound = "%prefix% &cPokemon not found in recovery history.";
+    if (noPermissionBuyback == null) noPermissionBuyback = "%prefix% &cYou do not have permission to recover sold Pokemon! (Permission: %permission%)";
+    if (buybackPermanent == null) buybackPermanent = "Permanent";
   }
 }

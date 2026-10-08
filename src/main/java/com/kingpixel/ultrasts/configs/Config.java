@@ -30,6 +30,7 @@ public class Config {
     .type(DataBaseType.JSON)
     .build();
   private DurationValue notificationCooldown = DurationValue.parse("15m");
+  private BuybackConfig buyback = new BuybackConfig();
 
   public static void init() {
     Path file = UltraSTS.getPath().resolve("config.json");
@@ -48,6 +49,7 @@ public class Config {
     if (commands == null) commands = List.of(UltraSTS.MOD_ID, "sts");
     if (blockHeldItems == null) blockHeldItems = Set.of("minecraft:diamond");
     if (notificationCooldown == null) notificationCooldown = DurationValue.parse("15m");
+    if (buyback == null) buyback = new BuybackConfig();
   }
 
   public boolean isItemBanned(Pokemon pokemon) {

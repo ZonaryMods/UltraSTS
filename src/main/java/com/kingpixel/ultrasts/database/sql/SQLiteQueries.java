@@ -10,7 +10,8 @@ public class SQLiteQueries implements SQLQueries {
               username TEXT NOT NULL,
               options TEXT NOT NULL,
               money_gained TEXT NOT NULL,
-              cooldowns TEXT NOT NULL
+              cooldowns TEXT NOT NULL,
+              buyback TEXT NOT NULL DEFAULT '[]'
           );
       """;
   }
@@ -26,13 +27,14 @@ public class SQLiteQueries implements SQLQueries {
   @Override
   public String upsertUser() {
     return """
-          INSERT INTO users (uuid, username, options, money_gained, cooldowns)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT INTO users (uuid, username, options, money_gained, cooldowns, buyback)
+          VALUES (?, ?, ?, ?, ?, ?)
           ON CONFLICT(uuid) DO UPDATE SET
               username = excluded.username,
               options = excluded.options,
               money_gained = excluded.money_gained,
-              cooldowns = excluded.cooldowns
+              cooldowns = excluded.cooldowns,
+              buyback = excluded.buyback
       """;
   }
 

@@ -1,6 +1,7 @@
 package com.kingpixel.ultrasts.database;
 
 import com.google.gson.reflect.TypeToken;
+import com.kingpixel.cobbleutils.Model.DataBaseConfig;
 import com.kingpixel.cobbleutils.util.UtilsFile;
 import com.kingpixel.cobbleutils.util.sql.SQLManager;
 import com.kingpixel.cobbleutils.util.sql.SQLService;
@@ -9,6 +10,7 @@ import com.kingpixel.ultrasts.database.sql.H2Queries;
 import com.kingpixel.ultrasts.database.sql.MySQLQueries;
 import com.kingpixel.ultrasts.database.sql.SQLQueries;
 import com.kingpixel.ultrasts.database.sql.SQLiteQueries;
+import com.kingpixel.ultrasts.models.BuybackEntry;
 import com.kingpixel.ultrasts.models.STS;
 import com.kingpixel.ultrasts.models.User;
 import com.kingpixel.ultrasts.models.UserOptions;
@@ -25,6 +27,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SQLDatabaseClient extends DatabaseClient {
 
@@ -34,6 +37,8 @@ public class SQLDatabaseClient extends DatabaseClient {
   private static final Type MONEY_TYPE = new TypeToken<Map<String, BigDecimal>>() {
   }.getType();
   private static final Type COOLDOWN_TYPE = new TypeToken<Map<String, Long>>() {
+  }.getType();
+  private static final Type BUYBACK_TYPE = new TypeToken<List<BuybackEntry>>() {
   }.getType();
 
   @Override
@@ -58,8 +63,26 @@ public class SQLDatabaseClient extends DatabaseClient {
       if (indexQuery != null && !indexQuery.isBlank()) {
         sqlManager.execute(indexQuery);
       }
+
+      migrateTable(config);
     } catch (Exception e) {
       UltraSTS.LOGGER.error("Failed to create users table", e);
+    }
+  }
+
+  private void migrateTable(DataBaseConfig config) {
+    try {
+      String alterQuery = switch (config.getType()) {
+        case SQLITE -> "ALTER TABLE users ADD COLUMN buyback TEXT DEFAULT '[]'";
+        case MYSQL, MARIADB -> "ALTER TABLE users ADD COLUMN buyback LONGTEXT";
+        case H2 -> "ALTER TABLE users ADD COLUMN IF NOT EXISTS buyback CLOB";
+        default -> null;
+      };
+      if (alterQuery != null) {
+        sqlManager.execute(alterQuery);
+      }
+    } catch (Exception ignored) {
+      // Column already exists or table structure up to date
     }
   }
 
@@ -202,6 +225,11 @@ public class SQLDatabaseClient extends DatabaseClient {
       5,
       UtilsFile.getGson().toJson(user.getCooldowns())
     );
+
+    ps.setString(
+      6,
+      UtilsFile.getGson().toJson(user.getBuyback())
+    );
   }
 
   private User parseUser(ResultSet rs) throws Exception {
@@ -225,6 +253,16 @@ public class SQLDatabaseClient extends DatabaseClient {
       COOLDOWN_TYPE
     );
 
+    List<BuybackEntry> buyback = null;
+    try {
+      String buybackJson = rs.getString("buyback");
+      if (buybackJson != null && !buybackJson.isBlank()) {
+        buyback = UtilsFile.getGson().fromJson(buybackJson, BUYBACK_TYPE);
+      }
+    } catch (Exception ignored) {
+      // Column may be absent in legacy tables
+    }
+
     return User.builder()
       .uuid(uuid)
       .username(username)
@@ -237,6 +275,9 @@ public class SQLDatabaseClient extends DatabaseClient {
       .cooldowns(cooldowns != null
         ? new ConcurrentHashMap<>(cooldowns)
         : new ConcurrentHashMap<>())
+      .buyback(buyback != null
+        ? new CopyOnWriteArrayList<>(buyback)
+        : new CopyOnWriteArrayList<>())
       .build();
   }
 }

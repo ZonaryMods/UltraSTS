@@ -10,7 +10,8 @@ public class H2Queries implements SQLQueries {
               username VARCHAR(32) NOT NULL,
               options CLOB NOT NULL,
               money_gained CLOB NOT NULL,
-              cooldowns CLOB NOT NULL
+              cooldowns CLOB NOT NULL,
+              buyback CLOB NOT NULL
           );
       """;
   }
@@ -26,9 +27,9 @@ public class H2Queries implements SQLQueries {
   @Override
   public String upsertUser() {
     return """
-          MERGE INTO users (uuid, username, options, money_gained, cooldowns)
+          MERGE INTO users (uuid, username, options, money_gained, cooldowns, buyback)
           KEY(uuid)
-          VALUES (?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?)
       """;
   }
 

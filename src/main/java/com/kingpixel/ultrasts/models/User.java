@@ -3,9 +3,12 @@ package com.kingpixel.ultrasts.models;
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.Model.EconomyUse;
 import com.kingpixel.cobbleutils.api.EconomyApi;
 import com.kingpixel.cobbleutils.api.PermissionApi;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
+import com.kingpixel.cobbleutils.util.PokemonUtils;
+import com.kingpixel.cobbleutils.util.TypeMessage;
 import com.kingpixel.cobbleutils.util.UtilsFile;
 import com.kingpixel.ultrasts.UltraSTS;
 import com.kingpixel.ultrasts.configs.STSConf;
@@ -23,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Data
@@ -40,6 +44,8 @@ public class User {
   private Map<String, BigDecimal> moneyGained = new ConcurrentHashMap<>();
   @Builder.Default
   private Map<String, Long> cooldowns = new ConcurrentHashMap<>();
+  @Builder.Default
+  private List<BuybackEntry> buyback = new CopyOnWriteArrayList<>();
 
   public User(ServerPlayerEntity player) {
     this.uuid = player.getUuid();
@@ -47,6 +53,7 @@ public class User {
     this.options = new UserOptions();
     this.cooldowns = new ConcurrentHashMap<>();
     this.moneyGained = new ConcurrentHashMap<>();
+    this.buyback = new CopyOnWriteArrayList<>();
     markDirty();
   }
 
@@ -100,6 +107,7 @@ public class User {
             addCooldown(sts, player);
             moneyGained.merge(sts.getId(), price, BigDecimal::add);
             EconomyApi.addMoney(player.getUuid(), price, sts.getEconomy());
+            addBuyback(pokemon, price, sts);
             markDirty();
             future.complete(true);
           } else {
@@ -134,6 +142,7 @@ public class User {
             if (price.compareTo(BigDecimal.ZERO) > 0 && (party.remove(pokemon) || pc.remove(pokemon))) {
               totalPool = totalPool.add(price);
               actuallyRemovedCount++;
+              addBuyback(pokemon, price, sts);
             }
           }
 
@@ -196,6 +205,151 @@ public class User {
       cooldowns = new ConcurrentHashMap<>();
       markDirty();
     }
+    if (buyback == null) {
+      buyback = new CopyOnWriteArrayList<>();
+      markDirty();
+    } else {
+      pruneExpiredBuyback();
+    }
+  }
+
+  public void addBuyback(Pokemon pokemon, BigDecimal price, STS sts) {
+    if (UltraSTS.config.getBuyback() == null || !UltraSTS.config.getBuyback().isEnabled()) return;
+    if (pokemon == null || price == null || sts == null) return;
+    pruneExpiredBuyback();
+    if (buyback == null) buyback = new CopyOnWriteArrayList<>();
+    int max = UltraSTS.config.getBuyback().getMaxEntriesPerUser();
+    if (max > 0 && buyback.size() >= max) {
+      while (buyback.size() >= max && !buyback.isEmpty()) {
+        buyback.remove(0);
+      }
+    }
+    buyback.add(BuybackEntry.builder()
+      .id(UUID.randomUUID())
+      .pokemon(pokemon)
+      .originalPrice(price)
+      .stsId(sts.getId())
+      .economy(sts.getEconomy())
+      .timestamp(System.currentTimeMillis())
+      .build());
+    markDirty();
+  }
+
+  public void pruneExpiredBuyback() {
+    if (buyback == null) {
+      buyback = new CopyOnWriteArrayList<>();
+      return;
+    }
+    if (UltraSTS.config.getBuyback() == null) return;
+    long maxAgeMillis = UltraSTS.config.getBuyback().getExpiration().toMillis();
+    if (maxAgeMillis > 0) {
+      boolean removed = buyback.removeIf(entry -> entry == null || entry.isExpired(maxAgeMillis));
+      if (removed) {
+        markDirty();
+      }
+    }
+  }
+
+  public CompletableFuture<Boolean> buybackPokemon(UUID entryId, ServerPlayerEntity player) {
+    CompletableFuture<Boolean> future = new CompletableFuture<>();
+    CobbleUtils.server.execute(() -> {
+      synchronized (this) {
+        try {
+          if (UltraSTS.config.getBuyback() == null || !UltraSTS.config.getBuyback().isEnabled()) {
+            future.complete(false);
+            return;
+          }
+          pruneExpiredBuyback();
+          BuybackEntry targetEntry = null;
+          for (BuybackEntry entry : buyback) {
+            if (entry != null && entry.getId() != null && entry.getId().equals(entryId)) {
+              targetEntry = entry;
+              break;
+            }
+          }
+          if (targetEntry == null) {
+            PlayerUtils.sendMessage(player, UltraSTS.lang.getBuybackNotFound(), UltraSTS.lang.getPrefix(), TypeMessage.CHAT);
+            future.complete(false);
+            return;
+          }
+          long maxAgeMillis = UltraSTS.config.getBuyback().getExpiration().toMillis();
+          if (targetEntry.isExpired(maxAgeMillis)) {
+            buyback.remove(targetEntry);
+            markDirty();
+            PlayerUtils.sendMessage(player, UltraSTS.lang.getBuybackExpired(), UltraSTS.lang.getPrefix(), TypeMessage.CHAT);
+            future.complete(false);
+            return;
+          }
+          STS sts = STSConf.getSTS(targetEntry.getStsId());
+          if (sts == null) {
+            sts = STSConf.getSTS("");
+          }
+
+          BigDecimal currentMarketPrice = getCurrentMarketPrice(sts, targetEntry.getPokemon());
+
+          BigDecimal buybackPrice = UltraSTS.config.getBuyback().calculateSecureBuybackPrice(
+            targetEntry.getOriginalPrice(),
+            currentMarketPrice
+          );
+
+          EconomyUse economy = targetEntry.getEconomy();
+          if (economy == null && sts != null) {
+            economy = sts.getEconomy();
+          }
+
+          if (!EconomyApi.hasEnoughMoney(player.getUuid(), buybackPrice, economy, false)) {
+            PlayerUtils.sendMessage(player,
+              UltraSTS.lang.getBuybackNotEnoughMoney()
+                .replace("%price%", EconomyApi.formatMoney(buybackPrice, economy)),
+              UltraSTS.lang.getPrefix(),
+              TypeMessage.CHAT);
+            future.complete(false);
+            return;
+          }
+
+          var party = Cobblemon.INSTANCE.getStorage().getParty(player);
+          var pc = Cobblemon.INSTANCE.getStorage().getPC(player);
+          Pokemon pokemon = targetEntry.getPokemon();
+
+          BigDecimal originalSoldPrice = targetEntry.getOriginalPrice();
+          if (party.add(pokemon) || pc.add(pokemon)) {
+            EconomyApi.removeMoney(player.getUuid(), buybackPrice, economy);
+            if (targetEntry.getStsId() != null && originalSoldPrice != null) {
+              moneyGained.computeIfPresent(targetEntry.getStsId(), (k, v) -> {
+                BigDecimal updated = v.subtract(originalSoldPrice);
+                return updated.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : updated;
+              });
+            }
+            buyback.remove(targetEntry);
+            markDirty();
+            PlayerUtils.sendMessage(player,
+              UltraSTS.lang.getBuybackSuccess()
+                .replace("%pokemon%", PokemonUtils.replace(pokemon))
+                .replace("%price%", EconomyApi.formatMoney(buybackPrice, economy)),
+              UltraSTS.lang.getPrefix(),
+              TypeMessage.CHAT);
+            future.complete(true);
+          } else {
+            PlayerUtils.sendMessage(player, UltraSTS.lang.getBuybackStorageFull(), UltraSTS.lang.getPrefix(), TypeMessage.CHAT);
+            future.complete(false);
+          }
+        } catch (Exception e) {
+          future.completeExceptionally(e);
+        }
+      }
+    });
+    return future;
+  }
+
+  private BigDecimal getCurrentMarketPrice(STS sts, Pokemon pokemon) {
+    if (sts != null && pokemon != null) {
+      try {
+        return BigDecimal.valueOf(sts.getFormula().getPokemonValue(pokemon));
+      } catch (Exception ignored) {
+        // Fallback if formula throws
+      }
+    }
+    return BigDecimal.ZERO;
   }
 
 

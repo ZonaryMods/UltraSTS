@@ -1,6 +1,8 @@
 package com.kingpixel.ultrasts.commands.base;
 
 import com.kingpixel.cobbleutils.api.PermissionApi;
+import com.kingpixel.cobbleutils.util.PlayerUtils;
+import com.kingpixel.cobbleutils.util.TypeMessage;
 import com.kingpixel.ultrasts.UltraSTS;
 import com.kingpixel.ultrasts.configs.STSConf;
 import com.kingpixel.ultrasts.gui.STSMenu;
@@ -22,6 +24,32 @@ public class STSCommand {
         UltraSTS.lang.getMenu().open(player);
         return 1;
       }).then(
+        CommandManager.literal("buyback")
+          .requires(source -> UltraSTS.config.getBuyback() != null && UltraSTS.config.getBuyback().hasPermission(source))
+          .executes(context -> {
+            ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+            if (player == null) return 0;
+            if (!UltraSTS.config.getBuyback().isEnabled()) {
+              PlayerUtils.sendMessage(player, UltraSTS.lang.getBuybackDisabled(), UltraSTS.lang.getPrefix(), TypeMessage.CHAT);
+              return 0;
+            }
+            UltraSTS.lang.getBuybackMenu().open(player, 0);
+            return 1;
+          })
+      ).then(
+        CommandManager.literal("recover")
+          .requires(source -> UltraSTS.config.getBuyback() != null && UltraSTS.config.getBuyback().hasPermission(source))
+          .executes(context -> {
+            ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+            if (player == null) return 0;
+            if (!UltraSTS.config.getBuyback().isEnabled()) {
+              PlayerUtils.sendMessage(player, UltraSTS.lang.getBuybackDisabled(), UltraSTS.lang.getPrefix(), TypeMessage.CHAT);
+              return 0;
+            }
+            UltraSTS.lang.getBuybackMenu().open(player, 0);
+            return 1;
+          })
+      ).then(
         CommandManager.literal("other")
           .then(
             CommandManager.argument("player", EntityArgumentType.player())
