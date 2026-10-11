@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.7.1] - 2026-10-12
+
+### Changed
+
+- **License**: Changed project license to CC-BY-NC-4.0 (Non-Commercial).
+
 ## [1.7.0] - 2026-10-08
 
 ### Added
