@@ -34,7 +34,7 @@ loom {
     splitEnvironmentSourceSets()
 
     mods {
-        "cobblejobs" {
+        "ultrasts" {
             sourceSet sourceSets.main
             sourceSet sourceSets.client
         }
@@ -102,6 +102,10 @@ dependencies {
     // Votifier
     implementation("com.github.NuVotifier.NuVotifier:nuvotifier-api:2.7.2")
     implementation("com.github.DrexHD:NuVotifier-Fabric:1.0.0-1.20.5")
+
+    // Test dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 processResources {
@@ -148,11 +152,36 @@ jar {
     }
 }
 
+tasks.register('apiJar', Jar) {
+    archiveClassifier.set('api')
+    from(sourceSets.main.output) {
+        include 'com/kingpixel/ultrasts/api/**'
+        include 'com/kingpixel/ultrasts/application/**'
+        include 'com/kingpixel/ultrasts/models/**'
+    }
+    from("LICENSE") {
+        rename { "${it}_${project.archivesBaseName}" }
+    }
+}
+
+tasks.named("build") {
+    dependsOn tasks.named("apiJar")
+}
+
+tasks.named("assemble") {
+    dependsOn tasks.named("apiJar")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
 publishing {
     publications {
         create("mavenJava", MavenPublication) {
             artifactId = project.archivesBaseName
             from components.java
+            artifact tasks.named("apiJar")
         }
     }
 }

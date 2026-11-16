@@ -1,6 +1,7 @@
 package com.kingpixel.ultrasts;
 
 import com.kingpixel.cobbleutils.CobbleUtils;
+import com.kingpixel.cobbleutils.util.UtilsFile;
 import com.kingpixel.cobbleutils.util.UtilsLogger;
 import com.kingpixel.cobbleutils.util.async.AsyncContext;
 import com.kingpixel.cobbleutils.util.async.UtilsAsync;
@@ -67,6 +68,7 @@ public class UltraSTS implements ModInitializer {
     Config.init();
     Lang.init();
     STSConf.init();
+    UtilsFile.extractWiki(UltraSTS.class, PATH);
   }
 
   public static void events() {

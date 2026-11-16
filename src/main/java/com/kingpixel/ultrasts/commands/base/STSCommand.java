@@ -4,8 +4,8 @@ import com.kingpixel.cobbleutils.api.PermissionApi;
 import com.kingpixel.cobbleutils.util.PlayerUtils;
 import com.kingpixel.cobbleutils.util.TypeMessage;
 import com.kingpixel.ultrasts.UltraSTS;
+import com.kingpixel.ultrasts.api.UltraStsApi;
 import com.kingpixel.ultrasts.configs.STSConf;
-import com.kingpixel.ultrasts.gui.STSMenu;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -21,7 +21,7 @@ public class STSCommand {
       .executes(context -> {
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
         if (player == null) return 0;
-        UltraSTS.lang.getMenu().open(player);
+        UltraStsApi.openMainMenu(player);
         return 1;
       }).then(
         CommandManager.literal("buyback")
@@ -33,7 +33,7 @@ public class STSCommand {
               PlayerUtils.sendMessage(player, UltraSTS.lang.getBuybackDisabled(), UltraSTS.lang.getPrefix(), TypeMessage.CHAT);
               return 0;
             }
-            UltraSTS.lang.getBuybackMenu().open(player, 0);
+            UltraStsApi.openBuybackMenu(player, 0);
             return 1;
           })
       ).then(
@@ -46,7 +46,7 @@ public class STSCommand {
               PlayerUtils.sendMessage(player, UltraSTS.lang.getBuybackDisabled(), UltraSTS.lang.getPrefix(), TypeMessage.CHAT);
               return 0;
             }
-            UltraSTS.lang.getBuybackMenu().open(player, 0);
+            UltraStsApi.openBuybackMenu(player, 0);
             return 1;
           })
       ).then(
@@ -57,7 +57,7 @@ public class STSCommand {
               .executes(context -> {
                 ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "player");
                 if (target == null) return 0;
-                UltraSTS.lang.getMenu().open(target);
+                UltraStsApi.openMainMenu(target);
                 return 1;
               }).then(
                 CommandManager.argument("sts", StringArgumentType.string())
@@ -71,7 +71,7 @@ public class STSCommand {
                     ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "player");
                     if (target == null) return 0;
                     String sts = StringArgumentType.getString(context, "sts");
-                    STSMenu.open(target, STSConf.getSTS(sts));
+                    UltraStsApi.openSellMenu(target, sts);
                     return 1;
                   })
               )

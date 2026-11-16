@@ -4,6 +4,7 @@ import com.kingpixel.cobbleutils.CobbleUtils;
 import com.kingpixel.cobbleutils.api.PermissionApi;
 import com.kingpixel.cobbleutils.util.AdventureTranslator;
 import com.kingpixel.ultrasts.UltraSTS;
+import com.kingpixel.ultrasts.api.UltraStsApi;
 import com.kingpixel.ultrasts.models.User;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -26,10 +27,7 @@ public class ResetCommand {
             ));
             return 0;
           }
-          User user = UltraSTS.database.getUser(player);
-          if (user == null) return 0;
-          user.reset();
-          user.save();
+          UltraStsApi.resetCooldowns(player);
           context.getSource().sendMessage(AdventureTranslator.toNative(
             UltraSTS.lang.getResetSuccess()
           ));

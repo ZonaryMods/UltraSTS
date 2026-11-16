@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.8.0] - 2026-11-16
+
+### Added
+
+- **Custom Menu & Rotom Phone Support**: Introduced a pluggable menu provider SPI (`StsMenuProvider`) and registry (`StsMenuRegistry`) allowing companion mods (such as Rotom Phone, custom GUI plugins, or web dashboards) to provide custom interfaces for STS categories, selling, buyback recovery, profiles, and leaderboards.
+- **Headless Action & Context Services**: Added headless services (`StsActionService`, `StsContextService`) to quote prices, sell Pokémon, buy back sold Pokémon, and retrieve player profiles without needing to open chest menus.
+- **Developer API & Artifacts**: Published a dedicated, lightweight `-api.jar` artifact for developers and third-party modders to integrate with UltraSTS.
+
+### Changed
+
+- Command handlers and menu dispatches now route through the unified `UltraStsApi` and menu registry.
+- Automated release workflow now publishes all release artifacts including developer API jars.
+
+## [1.7.2] - 2026-10-18
+
+### Added
+
+- **Automatic Documentation**: The mod now automatically extracts a complete `WIKI.md` guide inside `config/cobbleutils/ultrasts/WIKI.md`, detailing pricing curves, formulas, sold Pokémon buyback options, and command usages.
+
 ## [1.7.1] - 2026-10-12
 
 ### Changed
